@@ -1,0 +1,111 @@
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+using System.Data.SqlClient;
+
+namespace sporsalonuotomasyonu
+{
+    public partial class frmdersprogrami : Form
+    {
+        public frmdersprogrami()
+        {
+            InitializeComponent();
+        }
+       
+SqlConnection baglanti = new SqlConnection(@"Data Source=.\SQLEXPRESS;Initial Catalog=UCFITNESS;Integrated Security=True");
+        void Listele()
+        {
+            SqlDataAdapter da = new SqlDataAdapter("SELECT * FROM Tbl_DersProgrami", baglanti);
+            DataTable dt = new DataTable();
+            da.Fill(dt);
+            dgvListe.DataSource = dt;
+        }
+        private void frmdersprogrami_Load(object sender, EventArgs e)
+        {
+            Listele();
+        }
+
+        private void btnEkle_Click(object sender, EventArgs e)
+        {
+            baglanti.Open();
+            SqlCommand komut = new SqlCommand("INSERT INTO Tbl_DersProgrami (DersAdi, EgitmenAdiSoyadi, Gun, Saat) VALUES (@p1, @p2, @p3, @p4)", baglanti);
+            komut.Parameters.AddWithValue("@p1", txtDersAdi.Text);
+            komut.Parameters.AddWithValue("@p2", txtEgitmen.Text);
+            komut.Parameters.AddWithValue("@p3", txtGun.Text);
+            komut.Parameters.AddWithValue("@p4", txtSaat.Text);
+            komut.ExecuteNonQuery();
+            baglanti.Close();
+
+            MessageBox.Show("Ders programı başarıyla eklendi!", "Bilgi", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            Listele();
+            Temizle();
+        }
+
+        private void btnSil_Click(object sender, EventArgs e)
+        {
+            baglanti.Open();
+            SqlCommand komut = new SqlCommand("DELETE FROM Tbl_DersProgrami WHERE DersId=@p1", baglanti);
+            komut.Parameters.AddWithValue("@p1", txtDersId.Text);
+            komut.ExecuteNonQuery();
+            baglanti.Close();
+
+            MessageBox.Show("Ders programdan kaldırıldı!", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            Listele();
+            Temizle();
+        }
+
+        private void btnTemizle_Click(object sender, EventArgs e)
+        {
+            Temizle();
+        }
+        void Temizle()
+        {
+            txtDersId.Text = "";
+            txtDersAdi.Text = "";
+            txtEgitmen.Text = "";
+            txtGun.Text = "";
+            txtSaat.Text = "";
+            txtDersAdi.Focus();
+        }
+        private void btnGuncelle_Click(object sender, EventArgs e)
+        {
+            baglanti.Open();
+            SqlCommand komut = new SqlCommand("UPDATE Tbl_DersProgrami SET DersAdi=@p1, EgitmenAdiSoyadi=@p2, Gun=@p3, Saat=@p4 WHERE DersId=@p5", baglanti);
+            komut.Parameters.AddWithValue("@p1", txtDersAdi.Text);
+            komut.Parameters.AddWithValue("@p2", txtEgitmen.Text);
+            komut.Parameters.AddWithValue("@p3", txtGun.Text);
+            komut.Parameters.AddWithValue("@p4", txtSaat.Text);
+            komut.Parameters.AddWithValue("@p5", txtDersId.Text);
+            komut.ExecuteNonQuery();
+            baglanti.Close();
+
+            MessageBox.Show("Ders programı güncellendi!", "Bilgi", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            Listele();
+            Temizle();
+        }
+
+        private void dgvListe_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        {
+            int secilen = dgvListe.SelectedCells[0].RowIndex;
+            txtDersId.Text = dgvListe.Rows[secilen].Cells[0].Value.ToString();
+            txtDersAdi.Text = dgvListe.Rows[secilen].Cells[1].Value.ToString();
+            txtEgitmen.Text = dgvListe.Rows[secilen].Cells[2].Value.ToString();
+            txtGun.Text = dgvListe.Rows[secilen].Cells[3].Value.ToString();
+            txtSaat.Text = dgvListe.Rows[secilen].Cells[4].Value.ToString();
+        }
+
+        private void btnd_Click(object sender, EventArgs e)
+        {
+            frmanasayfa ana = new frmanasayfa();
+            ana.Show();
+            this.Hide();
+
+        }
+    }
+}
