@@ -1,0 +1,6 @@
+CREATE TABLE Tbl_Urunler (
+    UrunId INT PRIMARY KEY IDENTITY(1,1),
+    UrunAd VARCHAR(50) NOT NULL,
+    Fiyat DECIMAL(18,2) NOT NULL,
+    Stok INT NOT NULL
+);

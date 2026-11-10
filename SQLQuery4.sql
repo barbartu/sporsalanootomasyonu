@@ -1,0 +1,7 @@
+CREATE TABLE Tbl_DersProgrami (
+    DersId INT PRIMARY KEY IDENTITY(1,1),
+    DersAdi VARCHAR(50) NOT NULL,
+    EgitmenAdiSoyadi VARCHAR(50) NOT NULL,
+    Gun VARCHAR(20) NOT NULL,
+    Saat VARCHAR(10) NOT NULL
+);

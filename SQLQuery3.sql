@@ -1,0 +1,6 @@
+CREATE TABLE Tbl_Paketler (
+    PaketId INT PRIMARY KEY IDENTITY(1,1),
+    PaketAd VARCHAR(50) NOT NULL,
+    SureAy INT NOT NULL, 
+    Fiyat DECIMAL(18,2) NOT NULL
+);

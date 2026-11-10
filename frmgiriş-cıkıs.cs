@@ -1,0 +1,168 @@
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+using System.Data.SqlClient;
+
+namespace sporsalonuotomasyonu
+{
+    public partial class frmgiriş_cıkıs : Form
+    {
+        // Bağlantı cümlesi
+        SqlConnection baglanti = new SqlConnection(@"Data Source=.\SQLEXPRESS;Initial Catalog=UCFITNESS;Integrated Security=True");
+
+        public frmgiriş_cıkıs()
+        {
+            InitializeComponent();
+        }
+
+        private void frmgiriş_cıkıs_Load(object sender, EventArgs e)
+        {
+            GirisCikisListele();
+        }
+
+        private void GirisCikisListele()
+        {
+            try
+            {
+                SqlDataAdapter da = new SqlDataAdapter("SELECT * FROM Tbl_GirisCikis", baglanti);
+                DataTable dt = new DataTable();
+                da.Fill(dt);
+                dgvListe.DataSource = dt;
+
+                dgvListe.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+                dgvListe.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+                dgvListe.ReadOnly = true;
+
+                foreach (DataGridViewRow row in dgvListe.Rows)
+                {
+                    if (row.Cells["Durum"].Value != null)
+                    {
+                        string durum = row.Cells["Durum"].Value.ToString();
+                        if (durum == "Salonda")
+                        {
+                            row.DefaultCellStyle.BackColor = Color.LightGreen;
+                        }
+                        else
+                        {
+                            row.DefaultCellStyle.BackColor = Color.LightGray;
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Listeleme hatası: " + ex.Message, "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void btnGirisYap_Click(object sender, EventArgs e)
+        {
+            if (string.IsNullOrWhiteSpace(txtUyeId.Text))
+            {
+                MessageBox.Show("Lütfen geçerli bir Üye ID giriniz!", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            try
+            {
+                if (baglanti.State == ConnectionState.Closed)
+                    baglanti.Open();
+
+                SqlCommand komut = new SqlCommand("INSERT INTO Tbl_GirisCikis (UyeID, UyeAdSoyad, TcKimlikNo, GirisSaati, Durum) VALUES (@p1, @p2, @p3, @p4, @p5)", baglanti);
+                komut.Parameters.AddWithValue("@p1", Convert.ToInt32(txtUyeId.Text));
+                komut.Parameters.AddWithValue("@p2", "Üye Adı (Test)"); 
+                komut.Parameters.AddWithValue("@p3", "12345678901");
+                komut.Parameters.AddWithValue("@p4", DateTime.Now);
+                komut.Parameters.AddWithValue("@p5", "Salonda");
+                komut.ExecuteNonQuery();
+
+                MessageBox.Show("Giriş Başarılı! İyi sporlar.", "UCFITNESS", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                txtUyeId.Clear();
+                GirisCikisListele();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Giriş yapılırken hata oluştu: " + ex.Message, "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                if (baglanti.State == ConnectionState.Open)
+                    baglanti.Close();
+            }
+        }
+
+        private void btnCikisYap_Click(object sender, EventArgs e)
+        {
+            if (dgvListe.SelectedRows.Count == 0)
+            {
+                MessageBox.Show("Lütfen çıkış yapacak üyeyi tablodan seçiniz!", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            try
+            {
+                DataGridViewRow seciliSatir = dgvListe.SelectedRows[0];
+                string hareketId = seciliSatir.Cells["HareketID"].Value.ToString();
+                string mevcutDurum = seciliSatir.Cells["Durum"].Value.ToString();
+
+                if (mevcutDurum == "Çıkış Yapıldı")
+                {
+                    MessageBox.Show("Bu üye zaten çıkış yapmış görünüyor!", "Bilgi", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    return;
+                }
+
+                if (baglanti.State == ConnectionState.Closed)
+                    baglanti.Open();
+
+                SqlCommand komut = new SqlCommand("UPDATE Tbl_GirisCikis SET CikisSaati=@p1, Durum=@p2 WHERE HareketID=@p3", baglanti);
+                komut.Parameters.AddWithValue("@p1", DateTime.Now);
+                komut.Parameters.AddWithValue("@p2", "Çıkış Yapıldı");
+                komut.Parameters.AddWithValue("@p3", hareketId);
+                komut.ExecuteNonQuery();
+
+                MessageBox.Show("Çıkış kaydı oluşturuldu.", "UCFITNESS", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                GirisCikisListele();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Çıkış yapılırken hata oluştu: " + ex.Message, "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                if (baglanti.State == ConnectionState.Open)
+                    baglanti.Close();
+            }
+        }
+
+        private void btnYenile_Click(object sender, EventArgs e)
+        {
+            txtUyeId.Clear();
+            GirisCikisListele();
+        }
+
+        private void btngeri_Click(object sender, EventArgs e)
+        {
+            frmanasayfa ana = new frmanasayfa();
+            ana.Show();
+            this.Hide();
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            frmanasayfa ana = new frmanasayfa();
+            ana.Show();
+            this.Hide();
+        }
+
+        private void btnYenile_Click_1(object sender, EventArgs e)
+        {
+
+        }
+    }
+}
