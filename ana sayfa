@@ -1,0 +1,82 @@
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+
+namespace sporsalonuotomasyonu
+{
+    public partial class frmanasayfa : Form
+    {
+        public frmanasayfa()
+        {
+            InitializeComponent();
+        }
+
+        private void btnüyeyonetim_Click(object sender, EventArgs e)
+        {
+            frmüyeyönetim uyeFormu = new frmüyeyönetim();
+
+            uyeFormu.Show(); 
+            this.Hide();
+        }
+
+        private void btnodeme_Click(object sender, EventArgs e)
+        {
+            frmpaketveuyelik öde = new frmpaketveuyelik();
+            öde.Show();
+            this.Hide();
+        }
+
+        private void btneğitim_Click(object sender, EventArgs e)
+        {
+            eğitimveyönetimi a = new eğitimveyönetimi();
+            a.Show();
+            this.Hide();
+        }
+
+        private void frmanasayfa_Load(object sender, EventArgs e)
+        {
+
+        }
+
+        private void btngiriscıkıs_Click(object sender, EventArgs e)
+        {
+            frmgiriş_cıkıs g = new frmgiriş_cıkıs();
+            g.Show();
+            this.Hide();
+        }
+
+        private void btnbufesatıs_Click(object sender, EventArgs e)
+        {
+            frmurunsatıs au = new frmurunsatıs();
+            au.Show();
+            this.Hide();
+        }
+
+        private void btnpaket_Click(object sender, EventArgs e)
+        {
+            frmpaketlervetarifeler tarife = new frmpaketlervetarifeler();
+            tarife.Show();
+            this.Hide();
+        }
+
+        private void btnrapor_Click(object sender, EventArgs e)
+        {
+            frmraporlaveistatislik ist = new frmraporlaveistatislik();
+            ist.Show();
+            this.Hide();
+        }
+
+        private void btnders_Click(object sender, EventArgs e)
+        {
+            frmdersprogrami ders = new frmdersprogrami();
+            ders.Show();
+            this.Hide();
+        }
+    }
+}
