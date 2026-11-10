@@ -1,0 +1,220 @@
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+using System.Data.SqlClient;
+
+namespace sporsalonuotomasyonu
+{
+    public partial class frmüyeyönetim : Form
+    {
+        public frmüyeyönetim()
+        {
+            InitializeComponent();
+        }
+
+        // DÜZELTİLDİ: Bağlantı cümlesi doğru formata getirildi ve veritabanı adı eklendi
+     SqlConnection baglanti = new SqlConnection(@"Data Source=.\SQLEXPRESS;Initial Catalog=UCFITNESS;Integrated Security=True");
+
+        void Listele()
+        {
+            try
+            {
+                SqlDataAdapter da = new SqlDataAdapter("SELECT * FROM Tbl_Uyeler", baglanti);
+                DataTable dt = new DataTable();
+                da.Fill(dt);
+                dgvuyeler.DataSource = dt;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Listeleme hatası: " + ex.Message, "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void frmüyeyönetim_Load(object sender, EventArgs e)
+        {
+            Listele();
+
+            comboüyelik.Items.Clear();
+            combocinsiyet.Items.Clear();
+
+            comboüyelik.Items.AddRange(new string[] { "1 Aylık", "3 Aylık", "6 Aylık", "12 Aylık (Yıllık)" });
+            combocinsiyet.Items.AddRange(new string[] { "Erkek", "Kadın" });
+        }
+
+        private void btnekle_Click(object sender, EventArgs e)
+        {
+            if (string.IsNullOrWhiteSpace(txtisim.Text) || string.IsNullOrWhiteSpace(txtsoyisim.Text) || comboüyelik.SelectedIndex == -1)
+            {
+                MessageBox.Show("Lütfen ad, soyad ve üyelik tipini eksiksiz girin!", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            try
+            {
+                baglanti.Open();
+                SqlCommand komut = new SqlCommand("INSERT INTO Tbl_Uyeler (Ad, Soyad, Telefon, UyelikTipi, KayitTarihi) VALUES (@p1, @p2, @p3, @p4, @p5)", baglanti);
+                komut.Parameters.AddWithValue("@p1", txtisim.Text);
+                komut.Parameters.AddWithValue("@p2", txtsoyisim.Text);
+                komut.Parameters.AddWithValue("@p3", mtxtTelefon.Text);
+                komut.Parameters.AddWithValue("@p4", comboüyelik.SelectedItem.ToString());
+                komut.Parameters.AddWithValue("@p5", dtpkayıttarihi.Value.Date);
+                komut.ExecuteNonQuery();
+                baglanti.Close();
+
+                MessageBox.Show("Üye başarıyla eklendi!", "Bilgi", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                Listele();
+                FormTemizle();
+            }
+            catch (Exception ex)
+            {
+                if (baglanti.State == ConnectionState.Open) baglanti.Close();
+                MessageBox.Show("Ekleme hatası: " + ex.Message, "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void btnsil_Click(object sender, EventArgs e)
+        {
+            if (dgvuyeler.SelectedRows.Count > 0)
+            {
+                DialogResult onay = MessageBox.Show("Seçili üyeyi silmek istediğinize emin misiniz?", "Üye Sil", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+
+                if (onay == DialogResult.Yes)
+                {
+                    try
+                    {
+                        baglanti.Open();
+                        SqlCommand komut = new SqlCommand("DELETE FROM Tbl_Uyeler WHERE UyeId=@p1", baglanti);
+                        komut.Parameters.AddWithValue("@p1", dgvuyeler.SelectedRows[0].Cells[0].Value);
+                        komut.ExecuteNonQuery();
+                        baglanti.Close();
+
+                        MessageBox.Show("Üye sistemden başarıyla silindi.", "Bilgi", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        Listele();
+                        FormTemizle();
+                    }
+                    catch (Exception ex)
+                    {
+                        if (baglanti.State == ConnectionState.Open) baglanti.Close();
+                        MessageBox.Show("Silme hatası: " + ex.Message, "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                }
+            }
+            else
+            {
+                MessageBox.Show("Lütfen silmek istediğiniz üyeyi tablodan seçiniz!", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+        }
+
+        private void btngüncelle_Click(object sender, EventArgs e)
+        {
+            if (dgvuyeler.SelectedRows.Count > 0)
+            {
+                if (string.IsNullOrWhiteSpace(txtisim.Text) || comboüyelik.SelectedIndex == -1)
+                {
+                    MessageBox.Show("Lütfen güncellenecek bilgileri boş bırakmayın!", "Eksik Bilgi", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                try
+                {
+                    baglanti.Open();
+                    SqlCommand komut = new SqlCommand("UPDATE Tbl_Uyeler SET Ad=@p1, Soyad=@p2, Telefon=@p3, UyelikTipi=@p4, KayitTarihi=@p5 WHERE UyeId=@p6", baglanti);
+                    komut.Parameters.AddWithValue("@p1", txtisim.Text);
+                    komut.Parameters.AddWithValue("@p2", txtsoyisim.Text);
+                    komut.Parameters.AddWithValue("@p3", mtxtTelefon.Text);
+                    komut.Parameters.AddWithValue("@p4", comboüyelik.SelectedItem.ToString());
+                    komut.Parameters.AddWithValue("@p5", dtpkayıttarihi.Value.Date);
+                    komut.Parameters.AddWithValue("@p6", dgvuyeler.SelectedRows[0].Cells[0].Value);
+                    komut.ExecuteNonQuery();
+                    baglanti.Close();
+
+                    MessageBox.Show("Üye bilgileri başarıyla güncellendi.", "Başarılı", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    Listele();
+                    FormTemizle();
+                }
+                catch (Exception ex)
+                {
+                    if (baglanti.State == ConnectionState.Open) baglanti.Close();
+                    MessageBox.Show("Güncelleme hatası: " + ex.Message, "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
+            else
+            {
+                MessageBox.Show("Lütfen güncellemek istediğiniz üyeyi tablodan seçiniz!", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+        }
+
+        private void txtara_TextChanged(object sender, EventArgs e)
+        {
+            try
+            {
+                SqlDataAdapter da = new SqlDataAdapter("SELECT * FROM Tbl_Uyeler WHERE Ad LIKE '%" + txtara.Text + "%'", baglanti);
+                DataTable dt = new DataTable();
+                da.Fill(dt);
+                dgvuyeler.DataSource = dt;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Arama hatası: " + ex.Message, "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void dgvüyeler_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        {
+            if (e.RowIndex >= 0)
+            {
+                DataGridViewRow row = dgvuyeler.Rows[e.RowIndex];
+
+                txtisim.Text = row.Cells[1].Value?.ToString() ?? "";
+                txtsoyisim.Text = row.Cells[2].Value?.ToString() ?? "";
+                mtxtTelefon.Text = row.Cells[3].Value?.ToString() ?? "";
+
+                if (row.Cells[4].Value != null)
+                {
+                    comboüyelik.Text = row.Cells[4].Value.ToString();
+                }
+                else
+                {
+                    comboüyelik.SelectedIndex = -1;
+                }
+            }
+        }
+
+        private void btnTemizle_Click(object sender, EventArgs e)
+        {
+            FormTemizle();
+        }
+
+        private void FormTemizle()
+        {
+            txtisim.Clear();
+            txtsoyisim.Clear();
+            mtxtTelefon.Clear();
+            txtara.Clear();
+            comboüyelik.SelectedIndex = -1;
+            combocinsiyet.SelectedIndex = -1;
+            dtpkayıttarihi.Value = DateTime.Now;
+            txtisim.Focus();
+        }
+
+        private void btnKaydet_Click_Click(object sender, EventArgs e)
+        {
+            frmgiriş_cıkıs girisCikisFormu = new frmgiriş_cıkıs();
+            girisCikisFormu.Show();
+            this.Close();
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            frmanasayfa an = new frmanasayfa();
+            an.Show();
+            this.Hide();
+        }
+    }
+}
